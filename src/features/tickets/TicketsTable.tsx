@@ -7,18 +7,22 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Typography
+  Typography,
+  TableSortLabel,
+  TablePagination,
+  Box,
 } from "@mui/material";
 
 import MoneyIcon from "@mui/icons-material/Money";
-import { Box } from "@mui/material";
 
 import {
   flexRender,
   getCoreRowModel,
   useReactTable,
+  getSortedRowModel,
+  getPaginationRowModel,
 } from "@tanstack/react-table";
-import type { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef, SortingState  } from "@tanstack/react-table";
 
 import DOMPurify from "dompurify";
 
@@ -108,45 +112,106 @@ export default function TicketsTable({ data }: { data: RowAny[] }) {
     },
   ], []);
 
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [pageIndex, setPageIndex] = React.useState(0);
+  const [pageSize, setPageSize] = React.useState(10);
+
   const table = useReactTable({
     data,
     columns,
+    state: {
+      sorting,
+      pagination: { pageIndex, pageSize },
+    },
+    onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    manualPagination: false, 
   });
+
+  const totalRows = data.length;
 
   return (
     <Paper>
-
-      <TableContainer sx={{ maxHeight: "75vh" }}>
-        <Table stickyHeader size="small">
+      <TableContainer sx={{ maxHeight: "75vh", minHeight: 300 }}>
+      <Table stickyHeader size="small">
           <TableHead>
             {table.getHeaderGroups().map((hg) => (
               <TableRow key={hg.id}>
-                {hg.headers.map((header) => (
-                  <TableCell key={header.id} sx={{ fontWeight: 700 }}>
-                    {flexRender(
-                      header.column.columnDef.header,
-                      header.getContext()
-                    )}
-                  </TableCell>
-                ))}
+                {hg.headers.map((header) => {
+                  const isSorted = header.column.getIsSorted();
+                  return (
+                    <TableCell key={header.id} sx={{ fontWeight: 700 }}>
+                      {header.isPlaceholder ? null : (
+                        <TableSortLabel
+                          active={!!isSorted}
+                          direction={
+                            isSorted === "asc" || isSorted === "desc"
+                              ? isSorted
+                              : "asc"
+                          }
+                          onClick={header.column.getToggleSortingHandler()}
+                        >
+                          {flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                        </TableSortLabel>
+                      )}
+                    </TableCell>
+                  );
+                })}
               </TableRow>
             ))}
           </TableHead>
 
           <TableBody>
-            {table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id} hover>
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))}
+            {table.getRowModel().rows.length === 0 ? (
+                <TableRow>
+                <TableCell colSpan={table.getAllColumns().length} align="center">
+                    <Typography variant="body2" color="text.secondary">
+                    No hay resultados para el rango seleccionado.
+                    </Typography>
+                </TableCell>
+                </TableRow>
+            ) : (
+                table.getRowModel().rows.map((row) => (
+                <TableRow key={row.id} hover>
+                    {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                        {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                        )}
+                    </TableCell>
+                    ))}
+                </TableRow>
+                ))
+            )}
           </TableBody>
         </Table>
       </TableContainer>
+
+      {/* Paginado estilo DataTables */}
+      <TablePagination
+        component="div"
+        count={totalRows}
+        page={pageIndex}
+        onPageChange={(_, newPage) => {
+          setPageIndex(newPage);
+          table.setPageIndex(newPage);
+        }}
+        rowsPerPage={pageSize}
+        onRowsPerPageChange={(e) => {
+          const newSize = parseInt(e.target.value, 10);
+          setPageSize(newSize);
+          setPageIndex(0);
+          table.setPageSize(newSize);
+          table.setPageIndex(0);
+        }}
+        rowsPerPageOptions={[5, 10, 25, 50]}
+      />
     </Paper>
   );
 }

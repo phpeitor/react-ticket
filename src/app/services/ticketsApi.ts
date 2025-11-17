@@ -23,7 +23,7 @@ export const ticketsApi = createApi({
         }
 
         const qs = params.toString();
-        return qs ? `tickets?${qs}` : "tickets";
+        return qs ? `/api/tickets?${qs}` : "/api/tickets";
       },
       transformResponse: (r: any) =>
         Array.isArray(r) ? r : r?.data ?? r?.rows ?? r?.items ?? [],

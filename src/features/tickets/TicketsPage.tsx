@@ -8,6 +8,7 @@ import {
   Button,
 } from "@mui/material";
 
+import SearchIcon from "@mui/icons-material/Search";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -82,7 +83,7 @@ export default function TicketsPage() {
                 }
               }}
               format="YYYY-MM-DD"
-              maxDate={today} // no futuros
+              maxDate={today} 
               slotProps={{ textField: { size: "small" } }}
             />
 
@@ -91,8 +92,8 @@ export default function TicketsPage() {
               value={endDate}
               onChange={(newValue) => setEndDate(newValue)}
               format="YYYY-MM-DD"
-              minDate={startDate || undefined} // no antes de inicio
-              maxDate={today} // no futuros
+              minDate={startDate || undefined}
+              maxDate={today} 
               slotProps={{ textField: { size: "small" } }}
             />
 
@@ -100,6 +101,7 @@ export default function TicketsPage() {
               variant="contained"
               onClick={handleBuscar}
               disabled={isLoading || isFetching || isRangeInvalid}
+              startIcon={<SearchIcon />} 
             >
               BUSCAR
             </Button>

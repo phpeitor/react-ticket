@@ -11,9 +11,12 @@ import {
   TableSortLabel,
   TablePagination,
   Box,
+  IconButton,
 } from "@mui/material";
 
 import MoneyIcon from "@mui/icons-material/Money";
+import EditIcon from "@mui/icons-material/Edit";
+import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 
 import {
   flexRender,
@@ -22,13 +25,13 @@ import {
   getSortedRowModel,
   getPaginationRowModel,
 } from "@tanstack/react-table";
-import type { ColumnDef, SortingState  } from "@tanstack/react-table";
+import type { ColumnDef, SortingState } from "@tanstack/react-table";
 
 import DOMPurify from "dompurify";
+import CryptoJS from "crypto-js";
 
 export type RowAny = Record<string, any>;
 
-// Sanitiza HTML
 const asHtml = (value: unknown) => {
   const clean = DOMPurify.sanitize(String(value ?? ""), {
     USE_PROFILES: { html: true },
@@ -39,7 +42,6 @@ const asHtml = (value: unknown) => {
 const stripHtml = (value: unknown) =>
   String(value ?? "").replace(/<[^>]*>/g, "").trim();
 
-
 const getRemixClass = (value: unknown): string | undefined => {
   const match = String(value ?? "").match(/ri-[\w-]+/);
   return match?.[0];
@@ -49,12 +51,13 @@ const remixToMuiIcon = (cls?: string) => {
   switch (cls) {
     case "ri-currency-line":
       return <MoneyIcon fontSize="small" />;
-    // case "ri-shopping-cart-line":
-    //   return <ShoppingCartIcon fontSize="small" />;
     default:
       return null;
   }
 };
+
+const md5 = (value: string | number) =>
+  CryptoJS.MD5(String(value)).toString();
 
 export default function TicketsTable({ data }: { data: RowAny[] }) {
   const columns = React.useMemo<ColumnDef<RowAny>[]>(() => [
@@ -74,13 +77,11 @@ export default function TicketsTable({ data }: { data: RowAny[] }) {
       header: "Subtotal",
       cell: (info) => {
         const row = info.row.original as RowAny;
-        const cantidad = row.cantidad; 
+        const cantidad = row.cantidad;
 
         return (
           <div>
-            {/* items (html) */}
             <span dangerouslySetInnerHTML={asHtml(info.getValue())} />
-            {/* cantidad debajo */}
             {cantidad != null && (
               <Typography
                 variant="caption"
@@ -103,10 +104,47 @@ export default function TicketsTable({ data }: { data: RowAny[] }) {
         const Icon = remixToMuiIcon(remixClass);
 
         return (
-        <Box display="flex" alignItems="center" gap={0.5}>
+          <Box display="flex" alignItems="center" gap={0.5}>
             <Typography fontWeight={700}>{text}</Typography>
             {Icon}
-        </Box>
+          </Box>
+        );
+      },
+    },
+    // 👉 nueva columna OPCIONES
+    {
+      id: "opciones",
+      header: "Opciones",
+      enableSorting: false,
+      cell: (info) => {
+        const row = info.row.original as RowAny;
+        const id = row.id;
+        const hash = md5(id);
+        const pdfUrl = `https://sales.metadatape.com/controller/venta/tkt_pdf.php?hash=${hash}`;
+
+        return (
+          <Box display="flex" justifyContent="center" gap={1}>
+            {/* Editar (por ahora solo botón) */}
+            <IconButton
+              size="small"
+              color="primary"
+              // onClick={() => console.log("Editar", id)}
+            >
+              <EditIcon fontSize="small" />
+            </IconButton>
+
+            {/* PDF */}
+            <IconButton
+              size="small"
+              color="error"
+              component="a"
+              href={pdfUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <PictureAsPdfIcon fontSize="small" />
+            </IconButton>
+          </Box>
         );
       },
     },
@@ -127,7 +165,7 @@ export default function TicketsTable({ data }: { data: RowAny[] }) {
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    manualPagination: false, 
+    manualPagination: false,
   });
 
   const totalRows = data.length;
@@ -135,15 +173,16 @@ export default function TicketsTable({ data }: { data: RowAny[] }) {
   return (
     <Paper>
       <TableContainer sx={{ maxHeight: "75vh", minHeight: 300 }}>
-      <Table stickyHeader size="small">
+        <Table stickyHeader size="small">
           <TableHead>
             {table.getHeaderGroups().map((hg) => (
               <TableRow key={hg.id}>
                 {hg.headers.map((header) => {
                   const isSorted = header.column.getIsSorted();
+                  const canSort = header.column.getCanSort();
                   return (
                     <TableCell key={header.id} sx={{ fontWeight: 700 }}>
-                      {header.isPlaceholder ? null : (
+                      {header.isPlaceholder ? null : canSort ? (
                         <TableSortLabel
                           active={!!isSorted}
                           direction={
@@ -158,6 +197,11 @@ export default function TicketsTable({ data }: { data: RowAny[] }) {
                             header.getContext()
                           )}
                         </TableSortLabel>
+                      ) : (
+                        flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )
                       )}
                     </TableCell>
                   );
@@ -168,32 +212,34 @@ export default function TicketsTable({ data }: { data: RowAny[] }) {
 
           <TableBody>
             {table.getRowModel().rows.length === 0 ? (
-                <TableRow>
-                <TableCell colSpan={table.getAllColumns().length} align="center">
-                    <Typography variant="body2" color="text.secondary">
+              <TableRow>
+                <TableCell
+                  colSpan={table.getAllColumns().length}
+                  align="center"
+                >
+                  <Typography variant="body2" color="text.secondary">
                     No hay resultados para el rango seleccionado.
-                    </Typography>
+                  </Typography>
                 </TableCell>
-                </TableRow>
+              </TableRow>
             ) : (
-                table.getRowModel().rows.map((row) => (
+              table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id} hover>
-                    {row.getVisibleCells().map((cell) => (
+                  {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                        {flexRender(
+                      {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
-                        )}
+                      )}
                     </TableCell>
-                    ))}
+                  ))}
                 </TableRow>
-                ))
+              ))
             )}
           </TableBody>
         </Table>
       </TableContainer>
 
-      {/* Paginado estilo DataTables */}
       <TablePagination
         component="div"
         count={totalRows}

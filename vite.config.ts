@@ -9,11 +9,11 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     server: {
       proxy: {
-        '/tickets': {
+        '/api/tickets': {
           target: env.PROXY_TARGET, 
           changeOrigin: true,
           secure: true,
-          rewrite: (path) => path.replace(/^\/tickets/, env.PROXY_REWRITE || '/controller/venta/table_ticket.php'),
+          rewrite: (path) => path.replace(/^\/api\/tickets/, env.PROXY_REWRITE || '/controller/venta/table_ticket.php'),
         },
       },
     },

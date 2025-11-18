@@ -10,14 +10,11 @@ import {
 
 import AppLayout from "./layout/AppLayout";
 import TicketsPage from "./features/tickets/TicketsPage";
+import UsuariosPage from "./features/usuarios/UsuariosPage";
 
 // por ahora placeholders; luego los cambiamos por páginas reales
 function ClientesPage() {
   return <h2>Clientes (pendiente tabla)</h2>;
-}
-
-function UsuariosPage() {
-  return <h2>Usuarios (pendiente)</h2>;
 }
 
 function CategoriasPage() {

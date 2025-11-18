@@ -32,6 +32,8 @@ import CryptoJS from "crypto-js";
 
 export type RowAny = Record<string, any>;
 
+const API_BASE = import.meta.env.VITE_API_BASE as string;
+
 const asHtml = (value: unknown) => {
   const clean = DOMPurify.sanitize(String(value ?? ""), {
     USE_PROFILES: { html: true },
@@ -111,7 +113,6 @@ export default function TicketsTable({ data }: { data: RowAny[] }) {
         );
       },
     },
-    // 👉 nueva columna OPCIONES
     {
       id: "opciones",
       header: "Opciones",
@@ -120,7 +121,7 @@ export default function TicketsTable({ data }: { data: RowAny[] }) {
         const row = info.row.original as RowAny;
         const id = row.id;
         const hash = md5(id);
-        const pdfUrl = `https://sales.metadatape.com/controller/venta/tkt_pdf.php?hash=${hash}`;
+        const pdfUrl = `${API_BASE}/controller/venta/tkt_pdf.php?hash=${hash}`;
 
         return (
           <Box display="flex" justifyContent="center" gap={1}>

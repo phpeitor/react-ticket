@@ -15,7 +15,6 @@ import {
   InputAdornment,
   Avatar,
   Badge,
-  Divider,
 } from "@mui/material";
 
 import MenuIcon from "@mui/icons-material/Menu";
@@ -55,6 +54,7 @@ export default function AppLayout() {
     { label: "Items", icon: <Inventory2Icon />, path: "/items" },
   ];
 
+  // ——— SIDEBAR SOLO MENÚ (sin título Xintra) ———
   const sidebarContent = (
     <Box
       sx={{
@@ -63,34 +63,28 @@ export default function AppLayout() {
         flexDirection: "column",
         bgcolor: "primary.main",
         color: "primary.contrastText",
+        pt: 1, // un pequeño padding arriba
       }}
     >
-      {/* Header del sidebar (botón colapsar) */}
+      {/* Botón colapsar solo en desktop, pegado arriba */}
       <Box
         sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: collapsed ? "center" : "space-between",
-          px: 2,
-          py: 1.5,
+          display: { xs: "none", md: "flex" },
+          justifyContent: "center",
+          mb: 1,
         }}
       >
-        {!collapsed && (
-          <Typography variant="h6" sx={{ fontWeight: 700 }}>
-            Xintra
-          </Typography>
-        )}
-
         <IconButton
           size="small"
           onClick={() => setCollapsed((prev) => !prev)}
-          sx={{ color: "inherit" }}
+          sx={{
+            color: "inherit",
+            border: "1px solid rgba(255,255,255,0.4)",
+          }}
         >
           {collapsed ? <ChevronRightIcon /> : <ChevronLeftIcon />}
         </IconButton>
       </Box>
-
-      <Divider sx={{ borderColor: "rgba(255,255,255,0.2)" }} />
 
       <Box sx={{ flexGrow: 1 }}>
         <List>
@@ -145,7 +139,7 @@ export default function AppLayout() {
         flexDirection: "column",
       }}
     >
-      {/* HEADER GLOBAL (como el PHP) */}
+      {/* ——— HEADER COMO EL PHP ——— */}
       <AppBar
         position="sticky"
         elevation={0}
@@ -155,26 +149,38 @@ export default function AppLayout() {
           borderBottom: "1px solid #e5e7eb",
         }}
       >
-        <Toolbar sx={{ gap: 2 }}>
-          {/* Botón menú en móvil */}
-          <IconButton
-            edge="start"
-            onClick={handleToggleMobileDrawer}
-            sx={{ display: { xs: "inline-flex", md: "none" }, mr: 1 }}
+        <Toolbar sx={{ px: 2, gap: 2 }}>
+          {/* COLUMNA IZQUIERDA = ANCHO DEL SIDEBAR EN DESKTOP */}
+          <Box
+            sx={{
+              width: { xs: "auto", md: sidebarWidth },
+              display: "flex",
+              alignItems: "center",
+              flexShrink: 0,
+            }}
           >
-            <MenuIcon />
-          </IconButton>
+            {/* Menú hamburguesa solo en móvil */}
+            <IconButton
+              edge="start"
+              onClick={handleToggleMobileDrawer}
+              sx={{ display: { xs: "inline-flex", md: "none" }, mr: 1 }}
+            >
+              <MenuIcon />
+            </IconButton>
 
-          {/* Logo / nombre app */}
-          <Typography
-            variant="h6"
-            sx={{ fontWeight: 700, mr: { xs: 1, md: 2 } }}
+            {/* Logo / nombre app (siempre visible) */}
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>
+              React
+            </Typography>
+          </Box>
+
+          {/* BUSCADOR CENTRAL */}
+          <Box
+            sx={{
+              flexGrow: 1,
+              maxWidth: 600,
+            }}
           >
-            Xintra
-          </Typography>
-
-          {/* Buscador central */}
-          <Box sx={{ flexGrow: 1, maxWidth: 600 }}>
             <TextField
               fullWidth
               size="small"
@@ -190,23 +196,31 @@ export default function AppLayout() {
             />
           </Box>
 
-          {/* Iconos derecha */}
-          <IconButton>
-            <Badge color="error" variant="dot">
-              <NotificationsNoneIcon />
-            </Badge>
-          </IconButton>
-
-          <Avatar sx={{ width: 32, height: 32 }}>A</Avatar>
+          {/* ICONOS DERECHA */}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 2,
+              ml: 1,
+            }}
+          >
+            <IconButton>
+              <Badge color="error" variant="dot">
+                <NotificationsNoneIcon />
+              </Badge>
+            </IconButton>
+            <Avatar sx={{ width: 32, height: 32 }}>A</Avatar>
+          </Box>
         </Toolbar>
       </AppBar>
 
-      {/* CONTENIDO: SIDEBAR + MAIN */}
+      {/* ——— CONTENIDO: SIDEBAR + MAIN ——— */}
       <Box
         sx={{
           display: "flex",
           flexGrow: 1,
-          minHeight: 0, // importante para que el scroll sea correcto
+          minHeight: 0,
         }}
       >
         {/* SIDEBAR DESKTOP */}
@@ -221,7 +235,7 @@ export default function AppLayout() {
           {sidebarContent}
         </Box>
 
-        {/* SIDEBAR MÓVIL (drawer) */}
+        {/* SIDEBAR MÓVIL */}
         <Drawer
           variant="temporary"
           open={mobileOpen}
@@ -249,7 +263,6 @@ export default function AppLayout() {
         >
           <Box
             sx={{
-              // contenedor tipo “card grande” como en PHP
               maxWidth: "1200px",
               mx: "auto",
               bgcolor: "white",
@@ -258,6 +271,7 @@ export default function AppLayout() {
               p: { xs: 2, md: 3 },
             }}
           >
+            {/* Aquí cada página (Tickets, Usuarios, etc.) dibuja su propio título y cabecera */}
             <Outlet />
           </Box>
         </Box>

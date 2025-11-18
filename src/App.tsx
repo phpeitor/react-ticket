@@ -12,9 +12,8 @@ import AppLayout from "./layout/AppLayout";
 import TicketsPage from "./features/tickets/TicketsPage";
 import UsuariosPage from "./features/usuarios/UsuariosPage";
 
-// por ahora placeholders; luego los cambiamos por páginas reales
 function ClientesPage() {
-  return <h2>Clientes (pendiente tabla)</h2>;
+  return <h2>Clientes (pendiente)</h2>;
 }
 
 function CategoriasPage() {
@@ -31,11 +30,8 @@ export default function App() {
       <CssBaseline />
 
       <Routes>
-        {/* Todas estas rutas comparten el mismo layout */}
         <Route element={<AppLayout />}>
-          {/* redirigir / a /tickets */}
           <Route path="/" element={<Navigate to="/tickets" replace />} />
-
           <Route path="/tickets" element={<TicketsPage />} />
           <Route path="/clientes" element={<ClientesPage />} />
           <Route path="/usuarios" element={<UsuariosPage />} />
